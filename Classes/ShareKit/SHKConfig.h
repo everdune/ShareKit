@@ -124,6 +124,12 @@
 #define SHKLinkedInSecret			@""
 #define SHKLinkedInCallbackUrl		@""
 
+
+// Foursquare V2 - https://developer.foursquare.com
+#define SHKFoursquareV2ClientId @""
+#define SHKFoursquareV2RedirectURI @""
+
+
 /*
  UI Configuration : Basic
  ------

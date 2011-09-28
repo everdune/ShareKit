@@ -51,6 +51,8 @@
 - (NSString*)linkedInConsumerKey;
 - (NSString*)linkedInSecret;
 - (NSString*)linkedInCallbackUrl;
+- (NSString*)foursquareV2ClientId;
+- (NSString*)foursquareV2RedirectURI;
 - (NSNumber*)shareMenuAlphabeticalOrder;
 - (NSNumber*)sharedWithSignature;
 - (NSString*)barStyle;
