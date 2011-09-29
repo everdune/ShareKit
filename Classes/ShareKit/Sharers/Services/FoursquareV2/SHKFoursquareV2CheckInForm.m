@@ -1,8 +1,9 @@
 //
-//  SHKLinkedInTextForm.m
+//  SHKFoursquareV2CheckInForm.m
 //  ShareKit
 //
-//  Created by Robin Hos (Everdune) on 9/22/11.
+//  Created by Robin Hos (Everdune) on 9/26/11.
+//  Sponsored by Twoppy
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -24,33 +25,35 @@
 //
 //
 
-#import "SHKLinkedInTextForm.h"
-#import "SHK.h"
-#import "SHKLinkedIn.h"
+#import "SHKFoursquareV2CheckInForm.h"
 
-@implementation SHKLinkedInTextForm
+@implementation SHKFoursquareV2CheckInForm
 
-@synthesize delegate;
-@synthesize textView;
-@synthesize counter;
+@synthesize delegate = _delegate;
 
-- (void)dealloc 
+- (void)dealloc
 {
-	[delegate release];
-	[textView release];
-	[counter release];
+    self.delegate = nil;
+    
+    [_textView release];
+    [_counter release];   
+    
     [super dealloc];
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil 
 {
-    if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) 
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    
+    if (self) 
 	{		
-		self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
-																							  target:self
-																							  action:@selector(cancel)];
+        self.title = SHKLocalizedString(@"Foursquare");
+        
+//		self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
+//																							  target:self
+//																							  action:@selector(cancel)];
 		
-		self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:SHKLocalizedString(@"Send to LinkedIn")
+		self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:SHKLocalizedString(@"Check In")
 																				  style:UIBarButtonItemStyleDone
 																				 target:self
 																				 action:@selector(save)];
@@ -58,7 +61,16 @@
     return self;
 }
 
-
+- (id)initWithDelegate:(SHKFoursquareV2*)delegate
+{
+    self = [self initWithNibName:nil bundle:nil];
+    
+    if (self) {
+        self.delegate = delegate;
+    }
+    
+    return self;
+}
 
 - (void)loadView 
 {
@@ -66,15 +78,16 @@
 	
 	self.view.backgroundColor = [UIColor whiteColor];
 	
-	self.textView = [[[UITextView alloc] initWithFrame:self.view.bounds] autorelease];
-	textView.delegate = self;
-	textView.font = [UIFont systemFontOfSize:15];
-	textView.contentInset = UIEdgeInsetsMake(5,5,0,0);
-	textView.backgroundColor = [UIColor whiteColor];	
-	textView.autoresizesSubviews = YES;
-	textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+	_textView = [[UITextView alloc] initWithFrame:self.view.bounds];
+	_textView.delegate = self;
+	_textView.font = [UIFont systemFontOfSize:15];
+	_textView.contentInset = UIEdgeInsetsMake(5,5,0,0);
+	_textView.backgroundColor = [UIColor whiteColor];	
+	_textView.autoresizesSubviews = YES;
+	_textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    _textView.text = self.delegate.item.text;
 	
-	[self.view addSubview:textView];
+	[self.view addSubview:_textView];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -84,7 +97,7 @@
 	NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
 	[nc addObserver:self selector:@selector(keyboardWillShow:) name: UIKeyboardWillShowNotification object:nil];
 	
-	[self.textView becomeFirstResponder];
+	[_textView becomeFirstResponder];
 }
 
 - (void)viewDidDisappear:(BOOL)animated
@@ -94,14 +107,19 @@
 	// Remove observers
 	NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
 	[nc removeObserver:self name: UIKeyboardWillShowNotification object:nil];
-	
-	// Remove the SHK view wrapper from the window
-	[[SHK currentHelper] viewWasDismissed];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation 
 {
     return YES;
+}
+
+- (void)layoutCounter
+{
+	_counter.frame = CGRectMake(_textView.bounds.size.width-150-15,
+                                _textView.bounds.size.height-15-9,
+                                150,
+                                15);
 }
 
 //#pragma GCC diagnostic push
@@ -143,7 +161,7 @@
 	CGFloat distFromBottom = screenHeight - ((upsideDown ? screenHeight - topOfView : topOfView ) + self.view.bounds.size.height) + ([UIApplication sharedApplication].statusBarHidden || upsideDown ? 0 : 20);							
 	CGFloat maxViewHeight = self.view.bounds.size.height - keyboardHeight + distFromBottom;
 	
-	textView.frame = CGRectMake(0,0,self.view.bounds.size.width,maxViewHeight);
+	_textView.frame = CGRectMake(0,0,self.view.bounds.size.width,maxViewHeight);
 	[self layoutCounter];
 }
 //#pragma GCC diagnostic pop  
@@ -152,34 +170,24 @@
 
 - (void)updateCounter
 {
-	if (counter == nil)
+	if (_counter == nil)
 	{
-		self.counter = [[UILabel alloc] initWithFrame:CGRectZero];
-		counter.backgroundColor = [UIColor clearColor];
-		counter.opaque = NO;
-		counter.font = [UIFont boldSystemFontOfSize:14];
-		counter.textAlignment = UITextAlignmentRight;
+		_counter = [[UILabel alloc] initWithFrame:CGRectZero];
+		_counter.backgroundColor = [UIColor clearColor];
+		_counter.opaque = NO;
+		_counter.font = [UIFont boldSystemFontOfSize:14];
+		_counter.textAlignment = UITextAlignmentRight;
 		
-		counter.autoresizesSubviews = YES;
-		counter.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
+		_counter.autoresizesSubviews = YES;
+		_counter.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
 		
-		[self.view addSubview:counter];
+		[self.view addSubview:_counter];
 		[self layoutCounter];
-		
-		[counter release];
 	}
 	
-	int count = 700 - textView.text.length;
-	counter.text = [NSString stringWithFormat:@"%i", count];
-	counter.textColor = count >= 0 ? [UIColor blackColor] : [UIColor redColor];
-}
-
-- (void)layoutCounter
-{
-	counter.frame = CGRectMake(textView.bounds.size.width-150-15,
-							   textView.bounds.size.height-15-9,
-							   150,
-							   15);
+	int count = 140 - _textView.text.length;
+	_counter.text = [NSString stringWithFormat:@"%i", count];
+	_counter.textColor = count >= 0 ? [UIColor blackColor] : [UIColor redColor];
 }
 
 - (void)textViewDidBeginEditing:(UITextView *)textView
@@ -197,27 +205,22 @@
 	[self updateCounter];
 }
 
-#pragma mark -
 
-- (void)cancel
-{	
-	[[SHK currentHelper] hideCurrentViewControllerAnimated:YES];
-	[(SHKLinkedIn *)delegate sendDidCancel];
-}
+#pragma mark Private
 
 - (void)save
-{	
-	if (textView.text.length > 700)
+{
+	if (_textView.text.length > 700)
 	{
 		[[[[UIAlertView alloc] initWithTitle:SHKLocalizedString(@"Message is too long")
-									 message:SHKLocalizedString(@"LinkedIn posts can only be 700 characters in length.")
+									 message:SHKLocalizedString(@"Foursquare posts can only be 140 characters in length.")
 									delegate:nil
 						   cancelButtonTitle:SHKLocalizedString(@"Close")
 						   otherButtonTitles:nil] autorelease] show];
 		return;
 	}
 	
-	else if (textView.text.length == 0)
+	else if (_textView.text.length == 0)
 	{
 		[[[[UIAlertView alloc] initWithTitle:SHKLocalizedString(@"Message is empty")
 									 message:SHKLocalizedString(@"You must enter a message in order to post.")
@@ -226,10 +229,18 @@
 						   otherButtonTitles:nil] autorelease] show];
 		return;
 	}
-	
-	[(SHKLinkedIn *)delegate sendTextForm:self];
-	
+    
+    [_textView resignFirstResponder];
+    
+    self.delegate.item.text = _textView.text;
+    
+    [self.delegate startCheckInRequest];
+}
+
+- (void)cancel
+{
 	[[SHK currentHelper] hideCurrentViewControllerAnimated:YES];
+	[self.delegate sendDidCancel];
 }
 
 @end
