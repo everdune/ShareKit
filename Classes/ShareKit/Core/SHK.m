@@ -190,7 +190,7 @@ BOOL SHKinit;
 			self.isDismissingView = YES;
 			[[currentView parentViewController] dismissModalViewControllerAnimated:animated];
 		}
-		else if([currentView presentingViewController] != nil)
+		else if([currentView respondsToSelector:@selector(presentingViewController)] && [currentView presentingViewController] != nil)
 		{
 			self.isDismissingView = YES;
 			[[currentView presentingViewController] dismissModalViewControllerAnimated:animated];
