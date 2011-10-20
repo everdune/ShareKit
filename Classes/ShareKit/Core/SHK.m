@@ -618,7 +618,14 @@ void SHKSwizzle(Class c, SEL orig, SEL newClassName)
 NSString* SHKLocalizedString(NSString* key, ...) 
 {
 	// Localize the format
-	NSString *localizedStringFormat = NSLocalizedString(key, key);
+    static NSBundle* bundle = nil;
+    
+    if (nil == bundle) {
+        NSString* path = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"ShareKit.bundle"];
+        bundle = [[NSBundle bundleWithPath:path] retain];
+    }
+    
+	NSString *localizedStringFormat = [bundle localizedStringForKey:key value:key table:nil];
 	
 	va_list args;
     va_start(args, key);
