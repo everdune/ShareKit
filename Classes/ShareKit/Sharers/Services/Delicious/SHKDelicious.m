@@ -89,8 +89,8 @@
 {
 	if (pendingAction == SHKPendingRefreshToken)
 	{
-		if (accessToken.sessionHandle != nil)
-			[oRequest setOAuthParameterName:@"oauth_session_handle" withValue:accessToken.sessionHandle];	
+		if (accessToken.session != nil)
+			[oRequest setOAuthParameterName:@"oauth_session_handle" withValue:accessToken.session];	
 	}
 	
 	else
@@ -143,20 +143,20 @@
 		[oRequest setHTTPMethod:@"GET"];
 		
 		
-		OARequestParameter *urlParam = [OARequestParameter requestParameterWithName:@"url"
-																			  value:[item.URL.absoluteString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+		OARequestParameter *urlParam = [OARequestParameter requestParameter:@"url"
+                                                                      value:[item.URL.absoluteString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 		
-		OARequestParameter *descParam = [OARequestParameter requestParameterWithName:@"description"
-																			   value:SHKStringOrBlank(item.title)];
+		OARequestParameter *descParam = [OARequestParameter requestParameter:@"description"
+                                                                       value:SHKStringOrBlank(item.title)];
 		
-		OARequestParameter *tagsParam = [OARequestParameter requestParameterWithName:@"tags"
-																			   value:SHKStringOrBlank(item.tags)];
+		OARequestParameter *tagsParam = [OARequestParameter requestParameter:@"tags"
+                                                                       value:SHKStringOrBlank(item.tags)];
 		
-		OARequestParameter *extendedParam = [OARequestParameter requestParameterWithName:@"extended"
-																				   value:SHKStringOrBlank(item.text)];
+		OARequestParameter *extendedParam = [OARequestParameter requestParameter:@"extended"
+                                                                           value:SHKStringOrBlank(item.text)];
 		
-		OARequestParameter *sharedParam = [OARequestParameter requestParameterWithName:@"shared"
-																				 value:[item customBoolForSwitchKey:@"shared"]?@"yes":@"no"];
+		OARequestParameter *sharedParam = [OARequestParameter requestParameter:@"shared"
+                                                                         value:[item customBoolForSwitchKey:@"shared"]?@"yes":@"no"];
 		
 		
 		[oRequest setParameters:[NSArray arrayWithObjects:descParam, extendedParam, sharedParam, tagsParam, urlParam, nil]];

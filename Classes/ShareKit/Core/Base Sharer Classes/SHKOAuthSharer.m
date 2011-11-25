@@ -261,7 +261,7 @@
 					 forKey:@"accessSecret"
 			forSharer:[self sharerId]];
 	
-	[SHK setAuthValue:accessToken.sessionHandle
+	[SHK setAuthValue:accessToken.session
 			   forKey:@"sessionHandle"
 			forSharer:[self sharerId]];
 }
@@ -315,7 +315,7 @@
 		self.accessToken = [[[OAToken alloc] initWithKey:key secret:secret] autorelease];
 		
 		if (sessionHandle != nil)
-			accessToken.sessionHandle = sessionHandle;
+			accessToken.session = sessionHandle;
 		
 		return accessToken != nil;
 	}
