@@ -31,6 +31,7 @@
 static NSString *const kSHKStoredItemKey=@"kSHKStoredItem";
 static NSString *const kSHKFacebookAccessTokenKey=@"kSHKFacebookAccessToken";
 static NSString *const kSHKFacebookExpiryDateKey=@"kSHKFacebookExpiryDate";
+static NSString *const kSHKFacebookUserInfo =@"kSHKFacebookUserInfo";
 
 @interface SHKFacebook()
 
@@ -46,6 +47,8 @@ static NSString *const kSHKFacebookExpiryDateKey=@"kSHKFacebookExpiryDate";
 
 - (void)dealloc
 {
+  if ([SHKFacebook facebook].sessionDelegate == self)
+    [SHKFacebook facebook].sessionDelegate = nil;
 	[super dealloc];
 }
 
@@ -67,6 +70,7 @@ static NSString *const kSHKFacebookExpiryDateKey=@"kSHKFacebookExpiryDate";
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
   [defaults removeObjectForKey:kSHKFacebookAccessTokenKey];
   [defaults removeObjectForKey:kSHKFacebookExpiryDateKey];
+  [defaults removeObjectForKey:kSHKFacebookUserInfo];
   [defaults synchronize];
 }
 
@@ -137,6 +141,11 @@ static NSString *const kSHKFacebookExpiryDateKey=@"kSHKFacebookExpiryDate";
 + (BOOL)canShareOffline
 {
 	return NO; // TODO - would love to make this work
+}
+
++ (BOOL)canGetUserInfo
+{
+    return YES;
 }
 
 #pragma mark -
@@ -233,7 +242,13 @@ static NSString *const kSHKFacebookExpiryDateKey=@"kSHKFacebookExpiryDate";
 									   andHttpMethod:@"POST"
 										 andDelegate:self];
 		return YES;
-	} 
+	}
+    else if (item.shareType == SHKShareTypeUserInfo)
+    {
+        [self setQuiet:YES];
+        [[SHKFacebook facebook] requestWithGraphPath:@"me" andDelegate:self];
+        return YES;
+    } 
 	else 
 		// There is nothing to send
 		return NO;
@@ -276,7 +291,8 @@ static NSString *const kSHKFacebookExpiryDateKey=@"kSHKFacebookExpiryDate";
 
 - (void)dialog:(FBDialog *)dialog didFailWithError:(NSError *)error 
 {
-  [self sendDidFailWithError:error];
+  if (error.code != NSURLErrorCancelled)
+    [self sendDidFailWithError:error];
 }
 
 - (BOOL)dialog:(FBDialog*)dialog shouldOpenURLInExternalBrowser:(NSURL*)url
@@ -318,7 +334,13 @@ static NSString *const kSHKFacebookExpiryDateKey=@"kSHKFacebookExpiryDate";
 
 - (void)request:(FBRequest *)request didLoad:(id)result
 {
-  [self sendDidFinish];
+    NSLog(@"result: %@", [result description]);
+    
+    if ([result objectForKey:@"username"]){        
+        [[NSUserDefaults standardUserDefaults] setObject:result forKey:kSHKFacebookUserInfo];
+    }     
+
+    [self sendDidFinish];
 }
 
 - (void)request:(FBRequest*)aRequest didFailWithError:(NSError*)error 
@@ -348,6 +370,7 @@ static NSString *const kSHKFacebookExpiryDateKey=@"kSHKFacebookExpiryDate";
  	// force view to load so we can set textView text
  	[rootView view];
  	rootView.textView.text = item.text;
+    self.navigationBar.tintColor = SHKCONFIG_WITH_ARGUMENT(barTintForView:,rootView);
  	[self pushViewController:rootView animated:NO];
     [rootView release];
     [[SHK currentHelper] showViewController:self];  

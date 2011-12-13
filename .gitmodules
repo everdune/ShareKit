@@ -4,3 +4,6 @@
 [submodule "Submodules/OAuthConsumer"]
 	path = Submodules/OAuthConsumer
 	url = git@github.com:everdune/oauthconsumer.git
+[submodule "JSONKit"]
+	path = Submodules/JSONKit
+	url = git://github.com/johnezang/JSONKit.git
